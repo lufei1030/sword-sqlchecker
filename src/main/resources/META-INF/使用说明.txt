@@ -1,0 +1,59 @@
+
+	检查sql是否符合DBA提出的语法要求，主要使用在云化电子税务局项目
+	
+	jar包列表：
+		sword-sqlchecker-1.0.0.jar
+		druid-1.1.16.jar
+		dom4j-1.6.1.jar
+		ojdbc6.jar
+	
+	运行方式，有两种使用方式
+	1. 程序独立运行
+		适合各组独立运行检查sql合法性
+		com.css.sword.sqlchecker.SqlChecker.main(args);
+		args参数列表2个：
+			白名单文件: 白名单文件完整路径，配置哪些sql跳过检查
+			sql-*.xml文件所在目录：完整目录路径,会扫描目录内所有sql-*.xml文件
+	    运行前请确认错误输出目标库信息以及扫描文件.xml与.properties路径
+	2. 配合配置管理工具使用
+		final String datasource = "xxxxxxxx";// datasource.xml中的数据模型工具数据源名称
+        final String wListFile = .getSwordRootPath() + File.separator + "sql-checker-white.properties";
+        SqlChecker checker = new SqlChecker(datasource, wListFile);
+        try {
+            final SqlInfo sqlInfo = new SqlInfo(sqlkey, sql);
+            checker.checkSQL(sqlInfo);SwordFileUtils
+            StringBuilder errorMsg = new StringBuiler();
+            if (checker.errorMessage != null && checker.errorMessage.length() > 0) {
+            	errorMsg.append(checker.errorMessage);
+            }
+            if (checker.dbaErrorMessage != null && checker.dbaErrorMessage.length() > 0) {
+            	errorMsg.append(checker.dbaErrorMessage);
+            }
+            if (errorMsg.length() > 0) {
+                return errorMsg.toString();
+            }else{
+                return null;
+            }
+        } finally {
+            if (checker != null) {
+                checker.close();
+            }
+        }
+    
+	自动过滤
+		key以orc结尾或者hxzg结尾的sql不扫描
+		
+	白名单文件配置：sql-checker-white.properties
+		sqlkey=hashcode
+		如:
+		queryUsers=123456789
+		每次运行检查器，如果有不合法的sql，会打印出来，并且带有hashcode，hashcode是根据sql的具体内容算出来的。避免sqlkey不变，但是内容修改的情况，所以这里需要配置hashcode
+	
+	扫描结果
+		正常情况扫描结果比较准确，但是不排除一些特殊语法、或分片信息未维护等情况；
+		所以检测结果，需要人工对有问题的进行确认；
+		如果确定是没有问题的，但是检测工具检测出问题的，可以配置白名单，另外反馈给架构部优化检测程序；
+			
+			
+			
+			
